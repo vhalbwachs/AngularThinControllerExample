@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+  <title>Angular Thin Controller Example</title>
+  <script src="https://code.angularjs.org/1.2.9/angular.min.js"></script>
+</head>
+<body>
+  <div class="container">
+  <h1>Angular Thin Controller Example</h1>
+    <div class="row">
+      <div class="col-sm-4" ng-controller="friendCtrl"> 
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Friends List
+              <button class="btn btn-xs pull-right btn-danger"
+                      role="button"
+                      ng-disabled="!anyPendingRemoval()"
+                      ng-click="purgePendingRemoval()">
+              Remove Friends
+              </button></h3>
+              <div class="clearfix"></div>
+          </div>
+          <div class="list-group">
+            <a href="#"
+               class="list-group-item"
+               ng-repeat="friend in friends" 
+               ng-click="toggleRemoval($index)"
+               ng-class="{'list-group-item-warning': friend.pendingRemoval}">
+            {{friend.info.name}}
+            </a>
+          </div>
+        </div>     
+      </div>
+      <div class="col-sm-8" ng-controller="alertsCtrl">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Notifications</h3>
+          </div>
+          <div class="list-group-item"
+             ng-class="{'list-group-item-danger': ['removed', 'purged'].indexOf(notice.type) > -1,
+                        'list-group-item-success': notice.type === 'added',
+                        'list-group-item-warning': notice.type ==='toggleOn',
+                        'list-group-item-info': notice.type === 'toggleOff'}" 
+             ng-repeat="notice in alerts">
+             <p class="list-group-item-text">{{renderAlertText(notice)}}</p>
+          </div>
+        </div>
+      </div> 
+    </div>
+  </div>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
