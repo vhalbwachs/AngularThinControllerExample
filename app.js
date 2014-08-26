@@ -22,39 +22,53 @@ angular.module("app",[])
     } 
     return api;   
   })
-  .factory('friendCollection', function(alerts) {
+  .factory('friendCollection', function(alerts, $rootScope) {
     var _friends = [];
     var friendCollection = {};
     friendCollection.getFriends = function() {
       return _friends;
-    }
+    };
     friendCollection.addFriend = function(friend) {
       _friends.push({
         info: friend,
         pendingRemoval: false
       });
-      alerts.addAlerts('added', friend.name);
-    }
+      $rootScope.$emit('alert', {
+        action: 'added',
+        who: friend.name
+      });
+    };
     friendCollection.removeFriend = function(apifriend) {
       var removed = _.remove(_friends, function(friend) {
         return friend.info.id === apifriend.id;;
       });
-      alerts.addAlerts('removed', removed[0].info.name);
-    }
+      if (removed.length) {      
+        $rootScope.$emit('alert', {
+          action: 'removed',
+          who: removed[0].info.name
+        });
+      };
+    };
     friendCollection.toggleRemoval = function(index) {
       var action = _friends[index]['pendingRemoval'] ? 'toggleOff' : 'toggleOn'
       _friends[index]['pendingRemoval'] = !_friends[index]['pendingRemoval'];
-      alerts.addAlerts(action, _friends[index]['info']['name']);
-    }
+      $rootScope.$emit('alert', {
+        action: action,
+        who: _friends[index]['info']['name']
+      });
+    };
     friendCollection.anyPendingRemoval = function() {
       return _.some(_friends, 'pendingRemoval');
-    }
+    };
     friendCollection.purgePendingRemoval = function() {
       var removed = _.remove(_friends, 'pendingRemoval');
       _.each(removed, function(friend){
-        alerts.addAlerts("purged", friend.info.name);
-      })
-    }
+        $rootScope.$emit('alert', {
+          action: 'purged',
+          who: friend.info.name
+        });
+      });
+    };
     return friendCollection;
   })
   .factory('alerts', function() {
@@ -62,15 +76,15 @@ angular.module("app",[])
     var alertsFactory = {};
     alertsFactory.getAlerts = function() {
       return _alerts;
-    }
-    alertsFactory.addAlerts = function(type, who) {
-      if(who){        
-        var needsPopping = _alerts.unshift({ type: type, who: who}) > 15; 
+    };
+    alertsFactory.addAlerts = function(alert) {
+      if(alert.who){        
+        var needsPopping = _alerts.unshift({ type: alert.action, who: alert.who}) > 15; 
         if(needsPopping) {
           _alerts.pop();
         }
       }
-    }
+    };
     alertsFactory.renderAlertText = function(alert) {
       var alertTypeDescriptions = {
         added: ' was added.',
@@ -104,7 +118,10 @@ angular.module("app",[])
       $interval.cancel(apiFetchInterval);
     });
   })
-  .controller('alertsCtrl', function($scope, alerts){
+  .controller('alertsCtrl', function($scope, $rootScope, alerts){
     $scope.alerts = alerts.getAlerts();
     $scope.renderAlertText = alerts.renderAlertText;
-  })
+    $rootScope.$on('alert', function(e, alert){
+      alerts.addAlerts(alert);
+    });
+  });
